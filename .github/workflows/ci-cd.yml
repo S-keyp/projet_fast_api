@@ -14,16 +14,13 @@ jobs:
         run: pip install -r requirements.txt
       - name: Technical debt with Radon
         run: radon cc app.py -a
-      - name: Start FastAPI server
-        run: |
-          uvicorn app:app --reload
 
-      - name: Where am i
-        run: pwd && ls -la
-
-      - name: Performance tests with k6
-        run: |
-          k6 run test.js
+      - name: Setup K6
+        uses: grafana/setup-k6-action@v1
+      - name: Run local k6 test
+        uses: grafana/run-k6-action@v1
+        with:
+          path: test.js
           
       - name: Run linters
         run: flake8 app/ && pylint app/
