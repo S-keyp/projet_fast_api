@@ -33,7 +33,7 @@ jobs:
       - name: Run performance tests
         run: k6 run test.js --out json=performance.json
       - name: Upload performance results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: performance-results
           path: performance.json
