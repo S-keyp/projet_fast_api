@@ -18,7 +18,11 @@ jobs:
         run: |
           pip install uvicorn
           uvicorn app:app --host 0.0.0.0 --port 8000 &
-          sleep 5
+          sleep 1
+
+      - name: Where am i
+        run: pwd && ls -la
+        
       - name: Performance tests with k6
         run: |
           for test_file in test-*.js; do
