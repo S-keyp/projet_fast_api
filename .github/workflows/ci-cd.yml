@@ -16,10 +16,10 @@ jobs:
         run: radon cc app.py -a
       - name: Black
         run: black -l 79 app.py
-      # - name: Run flake8
-      #   run: flake8 app.py
-      # - name: Run pylint
-      #   run: pylint app.py
+      - name: Run flake8
+        run: flake8 app.py
+      - name: Run pylint
+        run: pylint app.py
       - name: Run unit tests
         run: pytest --maxfail=1 --disable-warnings tests/test.py
 
