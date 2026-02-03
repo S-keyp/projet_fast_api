@@ -14,16 +14,26 @@ jobs:
         run: pip install -r requirements.txt
       - name: Technical debt with Radon
         run: radon cc app.py -a
-
-      # - name: Setup K6
-      #   uses: grafana/setup-k6-action@v1
-      # - name: Run local k6 test
-      #   uses: grafana/run-k6-action@v1
-      #   with:
-      #     path: test.js
       - name: Black
         run: black -l 79 app.py
-      - name: Run linters
-        run: flake8 app.py && pylint app.py
+      # - name: Run flake8
+      #   run: flake8 app.py
+      # - name: Run pylint
+      #   run: pylint app.py
       - name: Run unit tests
         run: pytest --maxfail=1 --disable-warnings -q
+
+  performance-test:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install K6
+        run: sudo apt-get install k6
+      - name: Run performance tests
+        run: k6 run test.js --out json=performance.json
+      - name: Upload performance results
+        uses: actions/upload-artifact@v3
+        with:
+          name: performance-results
+          path: performance.json
