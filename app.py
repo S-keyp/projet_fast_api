@@ -2,6 +2,9 @@
 from fastapi import FastAPI, APIRouter, Depends, HTTPException
 from sqlalchemy import create_engine, Column, Integer, String
 from sqlalchemy.orm import sessionmaker, declarative_base, Session
+
+from pydantic import BaseModel
+from typing import Optional, List
 import os
 
 # --------------------------
@@ -13,9 +16,7 @@ DB_HOST = os.getenv("DB_HOST", "localhost")
 DB_PORT = os.getenv("DB_PORT", "3306")
 DB_NAME = os.getenv("DB_NAME", "digicheese")
 
-CONNECTION_STRING = (
-    f"sqlite:///./test.db"  # pour simplification, on utilise SQLite
-)
+CONNECTION_STRING = ("sqlite:///./test.db")
 engine = create_engine(
     CONNECTION_STRING, connect_args={"check_same_thread": False}
 )
@@ -46,8 +47,6 @@ Base.metadata.create_all(bind=engine)
 # --------------------------
 # Schemas
 # --------------------------
-from pydantic import BaseModel
-from typing import Optional, List
 
 
 class ClientBase(BaseModel):
