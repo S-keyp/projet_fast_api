@@ -35,6 +35,8 @@ jobs:
 
       - name: Install K6
         run: sudo snap install k6
+      - name: Install dependencies
+        run: pip install -r requirements.txt
       - name: Start FastAPI server
         run: |
           uvicorn app:app --host 0.0.0.0 --port 8000 &

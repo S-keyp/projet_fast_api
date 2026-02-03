@@ -13,8 +13,12 @@ DB_HOST = os.getenv("DB_HOST", "localhost")
 DB_PORT = os.getenv("DB_PORT", "3306")
 DB_NAME = os.getenv("DB_NAME", "digicheese")
 
-CONNECTION_STRING = f"sqlite:///./test.db"  # pour simplification, on utilise SQLite
-engine = create_engine(CONNECTION_STRING, connect_args={"check_same_thread": False})
+CONNECTION_STRING = (
+    f"sqlite:///./test.db"  # pour simplification, on utilise SQLite
+)
+engine = create_engine(
+    CONNECTION_STRING, connect_args={"check_same_thread": False}
+)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 # --------------------------
@@ -171,7 +175,9 @@ def create_client(client: ClientPost, db: Session = Depends(get_db)):
 
 
 @router.patch("/{client_id}", response_model=ClientInDB)
-def patch_client(client_id: int, client: ClientPatch, db: Session = Depends(get_db)):
+def patch_client(
+    client_id: int, client: ClientPatch, db: Session = Depends(get_db)
+):
     db_client = service.get_client_by_id(db, client_id)
     if not db_client:
         raise HTTPException(status_code=404, detail="Client non trouvé")
@@ -214,7 +220,11 @@ def test_create_and_get_client():
 
     client = TestClient(app)
     # Création d'un client
-    client_data = {"nom": "Dupont", "prenom": "Jean", "adresse": "123 Rue Exemple"}
+    client_data = {
+        "nom": "Dupont",
+        "prenom": "Jean",
+        "adresse": "123 Rue Exemple",
+    }
     response = client.post("/api/v1/client/", json=client_data)
     assert response.status_code == 200
     created = response.json()
@@ -235,14 +245,20 @@ def test_patch_client():
 
     client = TestClient(app)
     # Création d'un client
-    client_data = {"nom": "Martin", "prenom": "Paul", "adresse": "456 Rue Exemple"}
+    client_data = {
+        "nom": "Martin",
+        "prenom": "Paul",
+        "adresse": "456 Rue Exemple",
+    }
     response = client.post("/api/v1/client/", json=client_data)
     created = response.json()
     client_id = created["codcli"]
 
     # Patch du client
     patch_data = {"prenom": "Pierre"}
-    response_patch = client.patch(f"/api/v1/client/{client_id}", json=patch_data)
+    response_patch = client.patch(
+        f"/api/v1/client/{client_id}", json=patch_data
+    )
     assert response_patch.status_code == 200
     updated = response_patch.json()
     assert updated["prenom"] == "Pierre"
