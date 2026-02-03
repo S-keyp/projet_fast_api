@@ -1,11 +1,11 @@
-# app.py
+"""FastAPI application for client management with SQLAlchemy."""
+import os
+from typing import Optional, List
+
 from fastapi import FastAPI, APIRouter, Depends, HTTPException
 from sqlalchemy import create_engine, Column, Integer, String
 from sqlalchemy.orm import sessionmaker, declarative_base, Session
-
 from pydantic import BaseModel
-from typing import Optional, List
-import os
 
 # --------------------------
 # Configuration DB
@@ -16,10 +16,11 @@ DB_HOST = os.getenv("DB_HOST", "localhost")
 DB_PORT = os.getenv("DB_PORT", "3306")
 DB_NAME = os.getenv("DB_NAME", "digicheese")
 
-CONNECTION_STRING = ("sqlite:///./test.db")
+CONNECTION_STRING = "sqlite:///./test.db"
 engine = create_engine(
     CONNECTION_STRING, connect_args={"check_same_thread": False}
 )
+# pylint: disable=invalid-name
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 # --------------------------
@@ -28,7 +29,9 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
 
-class Client(Base):
+class Client(Base):  # pylint: disable=too-few-public-methods
+    """SQLAlchemy model for Client table."""
+
     __tablename__ = "t_client"
     codcli = Column(Integer, primary_key=True, index=True)
     nom = Column(String(40), index=True)
@@ -50,6 +53,8 @@ Base.metadata.create_all(bind=engine)
 
 
 class ClientBase(BaseModel):
+    """Base Pydantic model for Client."""
+
     nom: str
     prenom: str
     genre: Optional[str] = None
@@ -61,10 +66,14 @@ class ClientBase(BaseModel):
 
 
 class ClientPost(ClientBase):
-    pass
+    """Pydantic model for creating a new Client."""
+
+    # pylint: disable=too-few-public-methods
 
 
 class ClientPatch(BaseModel):
+    """Pydantic model for partially updating a Client."""
+
     nom: Optional[str] = None
     prenom: Optional[str] = None
     adresse: Optional[str] = None
@@ -76,9 +85,13 @@ class ClientPatch(BaseModel):
 
 
 class ClientInDB(ClientBase):
+    """Pydantic model for Client stored in database."""
+
     codcli: int
 
-    class Config:
+    class Config:  # pylint: disable=too-few-public-methods
+        """Pydantic configuration."""
+
         from_attributes = True
 
 
@@ -86,29 +99,36 @@ class ClientInDB(ClientBase):
 # Repository
 # --------------------------
 class ClientRepository:
+    """Repository for Client database operations."""
+
     def get_all_clients(self, db: Session):
+        """Retrieve all clients from database."""
         return list(db.query(Client).all())
 
-    def get_client_by_id(self, db: Session, id: int):
-        return db.query(Client).get(id)
+    def get_client_by_id(self, db: Session, client_id: int):
+        """Retrieve a client by ID."""
+        return db.query(Client).get(client_id)
 
     def create_client(self, db: Session, data: dict):
+        """Create a new client in database."""
         client = Client(**data)
         db.add(client)
         db.commit()
         db.refresh(client)
         return client
 
-    def patch_client(self, db: Session, id: int, data: dict):
-        client = db.query(Client).get(id)
+    def patch_client(self, db: Session, client_id: int, data: dict):
+        """Partially update a client in database."""
+        client = db.query(Client).get(client_id)
         for k, v in data.items():
             setattr(client, k, v)
         db.commit()
         db.refresh(client)
         return client
 
-    def delete_client(self, db: Session, id: int):
-        client = db.query(Client).get(id)
+    def delete_client(self, db: Session, client_id: int):
+        """Delete a client from database."""
+        client = db.query(Client).get(client_id)
         db.delete(client)
         db.commit()
         return client
@@ -118,24 +138,31 @@ class ClientRepository:
 # Service
 # --------------------------
 class ClientService:
+    """Service layer for Client business logic."""
+
     def __init__(self):
         self.repo = ClientRepository()
 
     def get_all_clients(self, db: Session):
+        """Get all clients."""
         return self.repo.get_all_clients(db)
 
     def get_client_by_id(self, db: Session, client_id: int):
+        """Get a client by ID."""
         return self.repo.get_client_by_id(db, client_id)
 
     def create_client(self, db: Session, new_client: ClientPost):
+        """Create a new client."""
         data = new_client.model_dump()
         return self.repo.create_client(db, data)
 
     def patch_client(self, db: Session, client_id: int, client: ClientPatch):
+        """Partially update a client."""
         data = client.model_dump(exclude_unset=True)
         return self.repo.patch_client(db, client_id, data)
 
     def delete_client(self, db: Session, client_id: int):
+        """Delete a client."""
         return self.repo.delete_client(db, client_id)
 
 
@@ -148,6 +175,7 @@ service = ClientService()
 
 
 def get_db():
+    """Dependency to get database session."""
     db = SessionLocal()
     try:
         yield db
@@ -157,11 +185,13 @@ def get_db():
 
 @router.get("/", response_model=List[ClientInDB])
 def get_clients(db: Session = Depends(get_db)):
+    """Get all clients endpoint."""
     return service.get_all_clients(db)
 
 
 @router.get("/{client_id}", response_model=ClientInDB)
 def get_client(client_id: int, db: Session = Depends(get_db)):
+    """Get a single client by ID endpoint."""
     client = service.get_client_by_id(db, client_id)
     if not client:
         raise HTTPException(status_code=404, detail="Client non trouvé")
@@ -170,6 +200,7 @@ def get_client(client_id: int, db: Session = Depends(get_db)):
 
 @router.post("/", response_model=ClientInDB)
 def create_client(client: ClientPost, db: Session = Depends(get_db)):
+    """Create a new client endpoint."""
     return service.create_client(db, client)
 
 
@@ -177,6 +208,7 @@ def create_client(client: ClientPost, db: Session = Depends(get_db)):
 def patch_client(
     client_id: int, client: ClientPatch, db: Session = Depends(get_db)
 ):
+    """Partially update a client endpoint."""
     db_client = service.get_client_by_id(db, client_id)
     if not db_client:
         raise HTTPException(status_code=404, detail="Client non trouvé")
@@ -185,6 +217,7 @@ def patch_client(
 
 @router.delete("/{client_id}", response_model=ClientInDB)
 def delete_client(client_id: int, db: Session = Depends(get_db)):
+    """Delete a client endpoint."""
     db_client = service.get_client_by_id(db, client_id)
     if not db_client:
         raise HTTPException(status_code=404, detail="Client non trouvé")
@@ -199,13 +232,18 @@ app.include_router(router)
 # --------------------------
 @app.get("/")
 def root():
+    """Root endpoint to check API status."""
     return {"message": "FastAPI operational"}
 
 
 # --------------------------
 # Tests intégrés pour pytest
 # --------------------------
+# pylint: disable=import-outside-toplevel
+
+
 def test_root():
+    """Test root endpoint."""
     from fastapi.testclient import TestClient
 
     client = TestClient(app)
@@ -215,6 +253,7 @@ def test_root():
 
 
 def test_create_and_get_client():
+    """Test client creation and retrieval."""
     from fastapi.testclient import TestClient
 
     client = TestClient(app)
@@ -240,6 +279,7 @@ def test_create_and_get_client():
 
 
 def test_patch_client():
+    """Test client partial update."""
     from fastapi.testclient import TestClient
 
     client = TestClient(app)
