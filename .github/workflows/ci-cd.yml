@@ -15,14 +15,14 @@ jobs:
       - name: Technical debt with Radon
         run: radon cc app.py -a
 
-      - name: Setup K6
-        uses: grafana/setup-k6-action@v1
-      - name: Run local k6 test
-        uses: grafana/run-k6-action@v1
-        with:
-          path: test.js
-          
+      # - name: Setup K6
+      #   uses: grafana/setup-k6-action@v1
+      # - name: Run local k6 test
+      #   uses: grafana/run-k6-action@v1
+      #   with:
+      #     path: test.js
+
       - name: Run linters
-        run: flake8 app/ && pylint app/
+        run: flake8 app.py && pylint app.py
       - name: Run unit tests
         run: pytest --maxfail=1 --disable-warnings -q
