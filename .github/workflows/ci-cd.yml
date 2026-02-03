@@ -1,0 +1,31 @@
+name: FastAPI_QualityPipeline
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Technical debt with Radon
+        run: radon cc app.py -a
+      - name: Start FastAPI server
+        run: |
+          pip install uvicorn
+          uvicorn app:app --host 0.0.0.0 --port 8000 &
+          sleep 5
+      - name: Performance tests with k6
+        run: |
+          for test_file in test-*.js; do
+            echo "Running $test_file..."
+            k6 run "$test_file"
+          done
+      - name: Run linters
+        run: flake8 app/ && pylint app/
+      - name: Run unit tests
+        run: pytest --maxfail=1 --disable-warnings -q
