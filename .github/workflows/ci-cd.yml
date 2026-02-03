@@ -16,19 +16,15 @@ jobs:
         run: radon cc app.py -a
       - name: Start FastAPI server
         run: |
-          pip install uvicorn
-          uvicorn app:app --host 0.0.0.0 --port 8000 &
-          sleep 1
+          uvicorn app:app --reload
 
       - name: Where am i
         run: pwd && ls -la
-        
+
       - name: Performance tests with k6
         run: |
-          for test_file in test-*.js; do
-            echo "Running $test_file..."
-            k6 run "$test_file"
-          done
+          k6 run test.js
+          
       - name: Run linters
         run: flake8 app/ && pylint app/
       - name: Run unit tests
