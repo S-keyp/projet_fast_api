@@ -5,7 +5,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
@@ -21,7 +21,8 @@ jobs:
       #   uses: grafana/run-k6-action@v1
       #   with:
       #     path: test.js
-
+      - name: Black
+        run: black -l 79 app.py
       - name: Run linters
         run: flake8 app.py && pylint app.py
       - name: Run unit tests

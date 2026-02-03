@@ -22,6 +22,7 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 # --------------------------
 Base = declarative_base()
 
+
 class Client(Base):
     __tablename__ = "t_client"
     codcli = Column(Integer, primary_key=True, index=True)
@@ -34,6 +35,7 @@ class Client(Base):
     email = Column(String(255), default=None)
     newsletter = Column(Integer, default=0)
 
+
 # Créer les tables
 Base.metadata.create_all(bind=engine)
 
@@ -42,6 +44,7 @@ Base.metadata.create_all(bind=engine)
 # --------------------------
 from pydantic import BaseModel
 from typing import Optional, List
+
 
 class ClientBase(BaseModel):
     nom: str
@@ -53,8 +56,10 @@ class ClientBase(BaseModel):
     email: Optional[str] = None
     newsletter: Optional[int] = 0
 
+
 class ClientPost(ClientBase):
     pass
+
 
 class ClientPatch(BaseModel):
     nom: Optional[str] = None
@@ -66,10 +71,13 @@ class ClientPatch(BaseModel):
     email: Optional[str] = None
     newsletter: Optional[int] = None
 
+
 class ClientInDB(ClientBase):
     codcli: int
+
     class Config:
         from_attributes = True
+
 
 # --------------------------
 # Repository
@@ -102,6 +110,7 @@ class ClientRepository:
         db.commit()
         return client
 
+
 # --------------------------
 # Service
 # --------------------------
@@ -126,12 +135,14 @@ class ClientService:
     def delete_client(self, db: Session, client_id: int):
         return self.repo.delete_client(db, client_id)
 
+
 # --------------------------
 # FastAPI app
 # --------------------------
 app = FastAPI()
 router = APIRouter(prefix="/api/v1/client", tags=["client"])
 service = ClientService()
+
 
 def get_db():
     db = SessionLocal()
@@ -140,9 +151,11 @@ def get_db():
     finally:
         db.close()
 
+
 @router.get("/", response_model=List[ClientInDB])
 def get_clients(db: Session = Depends(get_db)):
     return service.get_all_clients(db)
+
 
 @router.get("/{client_id}", response_model=ClientInDB)
 def get_client(client_id: int, db: Session = Depends(get_db)):
@@ -151,9 +164,11 @@ def get_client(client_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Client non trouvé")
     return client
 
+
 @router.post("/", response_model=ClientInDB)
 def create_client(client: ClientPost, db: Session = Depends(get_db)):
     return service.create_client(db, client)
+
 
 @router.patch("/{client_id}", response_model=ClientInDB)
 def patch_client(client_id: int, client: ClientPatch, db: Session = Depends(get_db)):
@@ -162,6 +177,7 @@ def patch_client(client_id: int, client: ClientPatch, db: Session = Depends(get_
         raise HTTPException(status_code=404, detail="Client non trouvé")
     return service.patch_client(db, client_id, client)
 
+
 @router.delete("/{client_id}", response_model=ClientInDB)
 def delete_client(client_id: int, db: Session = Depends(get_db)):
     db_client = service.get_client_by_id(db, client_id)
@@ -169,7 +185,9 @@ def delete_client(client_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Client non trouvé")
     return service.delete_client(db, client_id)
 
+
 app.include_router(router)
+
 
 # --------------------------
 # Root
@@ -178,25 +196,25 @@ app.include_router(router)
 def root():
     return {"message": "FastAPI operational"}
 
+
 # --------------------------
 # Tests intégrés pour pytest
 # --------------------------
 def test_root():
     from fastapi.testclient import TestClient
+
     client = TestClient(app)
     response = client.get("/")
     assert response.status_code == 200
     assert response.json() == {"message": "FastAPI operational"}
 
+
 def test_create_and_get_client():
     from fastapi.testclient import TestClient
+
     client = TestClient(app)
     # Création d'un client
-    client_data = {
-        "nom": "Dupont",
-        "prenom": "Jean",
-        "adresse": "123 Rue Exemple"
-    }
+    client_data = {"nom": "Dupont", "prenom": "Jean", "adresse": "123 Rue Exemple"}
     response = client.post("/api/v1/client/", json=client_data)
     assert response.status_code == 200
     created = response.json()
@@ -211,15 +229,13 @@ def test_create_and_get_client():
     assert fetched["nom"] == "Dupont"
     assert fetched["prenom"] == "Jean"
 
+
 def test_patch_client():
     from fastapi.testclient import TestClient
+
     client = TestClient(app)
     # Création d'un client
-    client_data = {
-        "nom": "Martin",
-        "prenom": "Paul",
-        "adresse": "456 Rue Exemple"
-    }
+    client_data = {"nom": "Martin", "prenom": "Paul", "adresse": "456 Rue Exemple"}
     response = client.post("/api/v1/client/", json=client_data)
     created = response.json()
     client_id = created["codcli"]
@@ -231,9 +247,11 @@ def test_patch_client():
     updated = response_patch.json()
     assert updated["prenom"] == "Pierre"
 
+
 # --------------------------
 # Run app (for direct python execution)
 # --------------------------
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(app, host="0.0.0.0", port=8000, reload=True)
