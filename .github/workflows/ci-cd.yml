@@ -39,7 +39,15 @@ jobs:
       - name: Start FastAPI server
         run: |
           uvicorn app:app --host 0.0.0.0 --port 8000 &
-          sleep 5
+          echo "Waiting for server to start..."
+          for i in {1..30}; do
+            if curl -s http://localhost:8000/ > /dev/null; then
+              echo "Server is ready!"
+              break
+            fi
+            echo "Attempt $i: Server not ready yet..."
+            sleep 1
+          done
           curl http://localhost:8000/ || exit 1
       - name: Run performance tests
         run: k6 run test.js --out json=performance.json
