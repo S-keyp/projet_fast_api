@@ -29,7 +29,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Install K6
-        run: snap install k6
+        run: sudo snap install k6
       - name: Run performance tests
         run: k6 run test.js --out json=performance.json
       - name: Upload performance results
