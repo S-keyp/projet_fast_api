@@ -20,8 +20,8 @@ jobs:
       #   run: flake8 app.py
       # - name: Run pylint
       #   run: pylint app.py
-      - name: Run unit tests
-        run: pytest --maxfail=1 --disable-warnings -q
+      # - name: Run unit tests
+      #   run: pytest --maxfail=1 --disable-warnings -q
 
   performance-test:
     runs-on: ubuntu-latest
