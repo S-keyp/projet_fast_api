@@ -16,8 +16,11 @@ Flask-Login==0.6.3
 Flask-RESTful==0.3.10
 Flask-SQLAlchemy==3.1.1
 greenlet==3.3.0
+h11==0.16.0
 importlib_resources==6.5.2
 iniconfig==2.3.0
+ipython==9.9.0
+ipython_pygments_lexers==1.1.1
 isort==7.0.0
 itsdangerous==2.2.0
 jedi==0.19.2
@@ -59,5 +62,6 @@ stack-data==0.6.3
 tomlkit==0.14.0
 traitlets==5.14.3
 typing_extensions==4.15.0
+uvicorn==0.40.0
 wcwidth==0.2.14
 Werkzeug==3.1.5
