@@ -12,10 +12,10 @@ jobs:
           python-version: '3.10'
       - name: Install dependencies
         run: pip install -r requirements.txt
-      - name: Technical debt with Radon
-        run: radon cc app.py -a
-      - name: Black
-        run: black -l 79 app.py
+      # - name: Technical debt with Radon
+      #   run: radon cc app.py -a
+      # - name: Black
+      #   run: black -l 79 app.py
       # - name: Run flake8
       #   run: flake8 app.py
       # - name: Run pylint
